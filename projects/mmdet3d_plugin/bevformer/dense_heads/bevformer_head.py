@@ -1,16 +1,17 @@
 import copy
+
 import torch
 import torch.nn as nn
-
 from mmcv.cnn import Linear, bias_init_with_prob
+from mmcv.runner import force_fp32, auto_fp16
 from mmcv.utils import TORCH_VERSION, digit_version
-from mmdet.core import (multi_apply, multi_apply, reduce_mean)
-from mmdet.models.utils.transformer import inverse_sigmoid
+from mmdet.core import (multi_apply, reduce_mean)
 from mmdet.models import HEADS
 from mmdet.models.dense_heads import DETRHead
+from mmdet.models.utils.transformer import inverse_sigmoid
 from mmdet3d.core.bbox.coders import build_bbox_coder
+
 from projects.mmdet3d_plugin.core.bbox.util import normalize_bbox
-from mmcv.runner import force_fp32, auto_fp16
 
 
 @HEADS.register_module()
@@ -115,7 +116,7 @@ class BEVFormerHead(DETRHead):
                 nn.init.constant_(m[-1].bias, bias_init)
 
     @auto_fp16(apply_to=('mlvl_feats'))
-    def forward(self, mlvl_feats, img_metas, prev_bev=None,  only_bev=False):
+    def forward(self, mlvl_feats, img_metas, prev_bev=None, only_bev=False):
         """Forward function.
         Args:
             mlvl_feats (tuple[Tensor]): Features from the upstream
@@ -166,7 +167,7 @@ class BEVFormerHead(DETRHead):
                 cls_branches=self.cls_branches if self.as_two_stage else None,
                 img_metas=img_metas,
                 prev_bev=prev_bev
-        )
+            )
 
         bev_embed, hs, init_reference, inter_references = outputs
         hs = hs.permute(0, 2, 1, 3)
@@ -188,11 +189,11 @@ class BEVFormerHead(DETRHead):
             tmp[..., 4:5] += reference[..., 2:3]
             tmp[..., 4:5] = tmp[..., 4:5].sigmoid()
             tmp[..., 0:1] = (tmp[..., 0:1] * (self.pc_range[3] -
-                             self.pc_range[0]) + self.pc_range[0])
+                                              self.pc_range[0]) + self.pc_range[0])
             tmp[..., 1:2] = (tmp[..., 1:2] * (self.pc_range[4] -
-                             self.pc_range[1]) + self.pc_range[1])
+                                              self.pc_range[1]) + self.pc_range[1])
             tmp[..., 4:5] = (tmp[..., 4:5] * (self.pc_range[5] -
-                             self.pc_range[2]) + self.pc_range[2])
+                                              self.pc_range[2]) + self.pc_range[2])
 
             # TODO: check if using sigmoid
             outputs_coord = tmp
@@ -363,7 +364,7 @@ class BEVFormerHead(DETRHead):
         cls_scores = cls_scores.reshape(-1, self.cls_out_channels)
         # construct weighted avg_factor to match with the official DETR repo
         cls_avg_factor = num_total_pos * 1.0 + \
-            num_total_neg * self.bg_cls_weight
+                         num_total_neg * self.bg_cls_weight
         if self.sync_cls_avg_factor:
             cls_avg_factor = reduce_mean(
                 cls_scores.new_tensor([cls_avg_factor]))
@@ -385,7 +386,7 @@ class BEVFormerHead(DETRHead):
 
         loss_bbox = self.loss_bbox(
             bbox_preds[isnotnan, :10], normalized_bbox_targets[isnotnan,
-                                                               :10], bbox_weights[isnotnan, :10],
+                                       :10], bbox_weights[isnotnan, :10],
             avg_factor=num_total_pos)
         if digit_version(TORCH_VERSION) >= digit_version('1.8'):
             loss_cls = torch.nan_to_num(loss_cls)
@@ -520,7 +521,7 @@ class BEVFormerHead_GroupDETR(BEVFormerHead):
         kwargs['num_query'] = group_detr * kwargs['num_query']
         super().__init__(*args, **kwargs)
 
-    def forward(self, mlvl_feats, img_metas, prev_bev=None,  only_bev=False):
+    def forward(self, mlvl_feats, img_metas, prev_bev=None, only_bev=False):
         bs, num_cam, _, _, _ = mlvl_feats[0].shape
         dtype = mlvl_feats[0].dtype
         object_query_embeds = self.query_embedding.weight.to(dtype)
@@ -558,7 +559,7 @@ class BEVFormerHead_GroupDETR(BEVFormerHead):
                 cls_branches=self.cls_branches if self.as_two_stage else None,
                 img_metas=img_metas,
                 prev_bev=prev_bev
-        )
+            )
 
         bev_embed, hs, init_reference, inter_references = outputs
         hs = hs.permute(0, 2, 1, 3)
@@ -578,11 +579,11 @@ class BEVFormerHead_GroupDETR(BEVFormerHead):
             tmp[..., 4:5] += reference[..., 2:3]
             tmp[..., 4:5] = tmp[..., 4:5].sigmoid()
             tmp[..., 0:1] = (tmp[..., 0:1] * (self.pc_range[3] -
-                             self.pc_range[0]) + self.pc_range[0])
+                                              self.pc_range[0]) + self.pc_range[0])
             tmp[..., 1:2] = (tmp[..., 1:2] * (self.pc_range[4] -
-                             self.pc_range[1]) + self.pc_range[1])
+                                              self.pc_range[1]) + self.pc_range[1])
             tmp[..., 4:5] = (tmp[..., 4:5] * (self.pc_range[5] -
-                             self.pc_range[2]) + self.pc_range[2])
+                                              self.pc_range[2]) + self.pc_range[2])
             outputs_coord = tmp
             outputs_classes.append(outputs_class)
             outputs_coords.append(outputs_coord)
@@ -641,7 +642,7 @@ class BEVFormerHead_GroupDETR(BEVFormerHead):
         all_bbox_preds = preds_dicts['all_bbox_preds']
         enc_cls_scores = preds_dicts['enc_cls_scores']
         enc_bbox_preds = preds_dicts['enc_bbox_preds']
-        assert enc_cls_scores is None and enc_bbox_preds is None 
+        assert enc_cls_scores is None and enc_bbox_preds is None
 
         num_dec_layers = len(all_cls_scores)
         device = gt_labels_list[0].device
@@ -665,9 +666,9 @@ class BEVFormerHead_GroupDETR(BEVFormerHead):
         num_query_per_group = self.num_query // self.group_detr
         for group_index in range(self.group_detr):
             group_query_start = group_index * num_query_per_group
-            group_query_end = (group_index+1) * num_query_per_group
-            group_cls_scores =  all_cls_scores[:, :,group_query_start:group_query_end, :]
-            group_bbox_preds = all_bbox_preds[:, :,group_query_start:group_query_end, :]
+            group_query_end = (group_index + 1) * num_query_per_group
+            group_cls_scores = all_cls_scores[:, :, group_query_start:group_query_end, :]
+            group_bbox_preds = all_bbox_preds[:, :, group_query_start:group_query_end, :]
             losses_cls, losses_bbox = multi_apply(
                 self.loss_single, group_cls_scores, group_bbox_preds,
                 all_gt_bboxes_list, all_gt_labels_list,

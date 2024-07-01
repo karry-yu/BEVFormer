@@ -1,9 +1,9 @@
+import random
+
 import numpy as np
 import torch
-import mmcv
-from mmdet.datasets.builder import PIPELINES
 from PIL import Image
-import random
+from mmdet.datasets.builder import PIPELINES
 
 
 @PIPELINES.register_module()
@@ -296,7 +296,7 @@ class GlobalRotScaleTransImage(object):
         bda_mat = flip_mat @ (scale_mat @ rot_mat)
         bda_mat = torch.inverse(bda_mat)
         results['aug_param']['GlobalRotScaleTransImage_param'] = (
-        rot_angle, scale_ratio, flip_dx, flip_dy, bda_mat, self.only_gt)
+            rot_angle, scale_ratio, flip_dx, flip_dy, bda_mat, self.only_gt)
 
         return rot_angle, scale_ratio, flip_dx, flip_dy, bda_mat, self.only_gt
 

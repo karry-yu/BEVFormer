@@ -11,6 +11,7 @@ LOG = logging.getLogger(__name__)
 PI = 3.14159265358979323846
 EPS = 1e-7
 
+
 def _sqrt_positive_part(x: torch.Tensor) -> torch.Tensor:
     """
     Returns torch.sqrt(torch.max(0, x))
@@ -20,6 +21,7 @@ def _sqrt_positive_part(x: torch.Tensor) -> torch.Tensor:
     positive_mask = x > 0
     ret[positive_mask] = torch.sqrt(x[positive_mask])
     return ret
+
 
 def matrix_to_quaternion(matrix: torch.Tensor) -> torch.Tensor:
     """
@@ -71,8 +73,9 @@ def matrix_to_quaternion(matrix: torch.Tensor) -> torch.Tensor:
     # forall i; we pick the best-conditioned one (with the largest denominator)
 
     return quat_candidates[
-        F.one_hot(q_abs.argmax(dim=-1), num_classes=4) > 0.5, :  # pyre-ignore[16]
-    ].reshape(batch_dim + (4,))
+           F.one_hot(q_abs.argmax(dim=-1), num_classes=4) > 0.5, :  # pyre-ignore[16]
+           ].reshape(batch_dim + (4,))
+
 
 def quaternion_to_matrix(quaternions: torch.Tensor) -> torch.Tensor:
     """
@@ -103,6 +106,7 @@ def quaternion_to_matrix(quaternions: torch.Tensor) -> torch.Tensor:
         -1,
     )
     return o.reshape(quaternions.shape[:-1] + (3, 3))
+
 
 def allocentric_to_egocentric(quat, proj_ctr, inv_intrinsics):
     """

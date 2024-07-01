@@ -67,7 +67,7 @@ def smooth_l1_loss(input: torch.Tensor, target: torch.Tensor, beta: float, reduc
     else:
         n = torch.abs(input - target)
         cond = n < beta
-        a = 0.5 * n**2
+        a = 0.5 * n ** 2
         b = n - 0.5 * beta
         a, b = a.to(input.dtype), b.to(input.dtype)
         loss = torch.where(cond, a, b)

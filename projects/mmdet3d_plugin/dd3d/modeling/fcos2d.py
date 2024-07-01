@@ -2,14 +2,13 @@
 # Adapted from AdelaiDet:
 #   https://github.com/aim-uofa/AdelaiDet
 import torch
-from fvcore.nn import sigmoid_focal_loss
-from torch import nn
-from torch.nn import functional as F
-
 from detectron2.layers import Conv2d, batched_nms, cat, get_norm
 from detectron2.structures import Boxes, Instances
 from detectron2.utils.comm import get_world_size
+from fvcore.nn import sigmoid_focal_loss
 from mmcv.runner import force_fp32
+from torch import nn
+from torch.nn import functional as F
 
 from projects.mmdet3d_plugin.dd3d.layers.iou_loss import IOULoss
 from projects.mmdet3d_plugin.dd3d.layers.normalization import ModuleListDial, Scale
@@ -24,13 +23,13 @@ def compute_ctrness_targets(reg_targets):
     left_right = reg_targets[:, [0, 2]]
     top_bottom = reg_targets[:, [1, 3]]
     ctrness = (left_right.min(dim=-1)[0] / left_right.max(dim=-1)[0]) * \
-                 (top_bottom.min(dim=-1)[0] / top_bottom.max(dim=-1)[0])
+              (top_bottom.min(dim=-1)[0] / top_bottom.max(dim=-1)[0])
     return torch.sqrt(ctrness)
 
 
 class FCOS2DHead(nn.Module):
-    def __init__(self, 
-                 num_classes, 
+    def __init__(self,
+                 num_classes,
                  input_shape,
                  num_cls_convs=4,
                  num_box_convs=4,
@@ -268,7 +267,7 @@ class FCOS2DInference():
         pred_instances = []  # List[List[Instances]], shape = (L, B)
         extra_info = []
         for lvl, (logits_lvl, box2d_reg_lvl, centerness_lvl, locations_lvl) in \
-            enumerate(zip(logits, box2d_reg, centerness, locations)):
+                enumerate(zip(logits, box2d_reg, centerness, locations)):
 
             instances_per_lvl, extra_info_per_lvl = self.forward_for_single_feature_map(
                 logits_lvl, box2d_reg_lvl, centerness_lvl, locations_lvl, image_sizes
@@ -341,7 +340,7 @@ class FCOS2DInference():
                 locations_per_im[:, 0] + box2d_reg_per_im[:, 2],
                 locations_per_im[:, 1] + box2d_reg_per_im[:, 3],
             ],
-                                     dim=1)
+                dim=1)
 
             instances = Instances(image_sizes[i])
             instances.pred_boxes = Boxes(detections)

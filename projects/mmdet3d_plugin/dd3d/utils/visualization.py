@@ -1,7 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 # Copyright 2021 Toyota Research Institute.  All rights reserved.
 import colorsys
-import os
 
 import cv2
 import matplotlib.colors as mplc

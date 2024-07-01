@@ -1,23 +1,21 @@
 # Copyright 2021 Toyota Research Institute.  All rights reserved.
 import torch
-from torch import nn
-
-#from detectron2.modeling.meta_arch.build import META_ARCH_REGISTRY
+from detectron2.layers import ShapeSpec
+# from detectron2.modeling.meta_arch.build import META_ARCH_REGISTRY
 from detectron2.modeling.postprocessing import detector_postprocess as resize_instances
 from detectron2.structures import Instances
-from detectron2.layers import ShapeSpec
 from mmcv.runner import force_fp32
+from torch import nn
 
-from .fcos2d import FCOS2DHead, FCOS2DInference, FCOS2DLoss
-from .fcos3d import FCOS3DHead, FCOS3DInference, FCOS3DLoss
-#from tridet.modeling.dd3d.postprocessing import nuscenes_sample_aggregate
-from .prepare_targets import DD3DTargetPreparer
-#from tridet.modeling.feature_extractor import build_feature_extractor
-from projects.mmdet3d_plugin.dd3d.structures.image_list import ImageList
+# from tridet.modeling.feature_extractor import build_feature_extractor
 from projects.mmdet3d_plugin.dd3d.utils.tensor2d import compute_features_locations as compute_locations_per_level
+from .fcos2d import FCOS2DHead, FCOS2DLoss
+from .fcos3d import FCOS3DHead, FCOS3DLoss
+# from tridet.modeling.dd3d.postprocessing import nuscenes_sample_aggregate
+from .prepare_targets import DD3DTargetPreparer
 
 
-#@META_ARCH_REGISTRY.register()
+# @META_ARCH_REGISTRY.register()
 class DD3D(nn.Module):
     def __init__(self,
                  num_classes,
@@ -35,13 +33,13 @@ class DD3D(nn.Module):
         # self.backbone = build_feature_extractor(cfg)
         # backbone_output_shape = self.backbone.output_shape()
         # self.in_features = cfg.DD3D.IN_FEATURES or list(backbone_output_shape.keys())
-        
+
         self.backbone_output_shape = [ShapeSpec(channels=in_channels, stride=s) for s in strides]
 
         self.feature_locations_offset = feature_locations_offset
 
         self.fcos2d_head = FCOS2DHead(num_classes=num_classes, input_shape=self.backbone_output_shape,
-                                     **fcos2d_cfg)
+                                      **fcos2d_cfg)
         self.fcos2d_loss = FCOS2DLoss(num_classes=num_classes, **fcos2d_loss_cfg)
         # NOTE: inference later
         # self.fcos2d_inference = FCOS2DInference(cfg)
@@ -56,7 +54,7 @@ class DD3D(nn.Module):
         else:
             self.only_box2d = True
 
-        self.prepare_targets = DD3DTargetPreparer(num_classes=num_classes, 
+        self.prepare_targets = DD3DTargetPreparer(num_classes=num_classes,
                                                   input_shape=self.backbone_output_shape,
                                                   box3d_on=box3d_on,
                                                   **target_assign_cfg)
@@ -148,7 +146,7 @@ class DD3D(nn.Module):
         else:
             # TODO: do not support inference now
             raise NotImplementedError
-            
+
             pred_instances, fcos2d_info = self.fcos2d_inference(
                 logits, box2d_reg, centerness, locations, images.image_sizes
             )

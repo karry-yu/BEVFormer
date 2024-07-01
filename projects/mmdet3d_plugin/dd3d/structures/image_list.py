@@ -2,13 +2,12 @@
 # Copyright 2021 Toyota Research Institute.  All rights reserved.
 from __future__ import division
 
-from typing import Any, List, Sequence, Tuple
+from typing import Any, List, Tuple
 
 import torch
+from detectron2.utils.env import TORCH_VERSION
 from torch import device
 from torch.nn import functional as F
-
-from detectron2.utils.env import TORCH_VERSION
 
 
 def _as_tensor(x: Tuple[int, int]) -> torch.Tensor:
@@ -42,6 +41,7 @@ class ImageList(object):
     Attributes:
         image_sizes (list[tuple[int, int]]): each tuple is (h, w)
     """
+
     def __init__(self, tensor: torch.Tensor, image_sizes: List[Tuple[int, int]], intrinsics=None, image_paths=None):
         """
         Arguments:
@@ -92,11 +92,11 @@ class ImageList(object):
 
     @staticmethod
     def from_tensors(
-        tensors: List[torch.Tensor],
-        size_divisibility: int = 0,
-        pad_value: float = 0.0,
-        intrinsics=None,
-        image_paths=None
+            tensors: List[torch.Tensor],
+            size_divisibility: int = 0,
+            pad_value: float = 0.0,
+            intrinsics=None,
+            image_paths=None
     ) -> "ImageList":
         """
         Args:
@@ -124,7 +124,7 @@ class ImageList(object):
         if size_divisibility > 1:
             stride = size_divisibility
             # the last two dims are H,W, both subject to divisibility requirement
-            max_size = torch.div(max_size + (stride - 1),  stride, rounding_mode='floor') * stride
+            max_size = torch.div(max_size + (stride - 1), stride, rounding_mode='floor') * stride
 
         # handle weirdness of scripting and tracing ...
         if torch.jit.is_scripting():

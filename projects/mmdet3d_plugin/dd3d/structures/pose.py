@@ -7,6 +7,7 @@ class Pose:
     """SE(3) rigid transform class that allows compounding of 6-DOF poses
     and provides common transformations that are commonly seen in geometric problems.
     """
+
     def __init__(self, wxyz=np.float32([1., 0., 0., 0.]), tvec=np.float32([0., 0., 0.])):
         """Initialize a Pose with Quaternion and 3D Position
 

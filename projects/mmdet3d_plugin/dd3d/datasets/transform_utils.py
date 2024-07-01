@@ -4,7 +4,6 @@
 #   https://github.com/facebookresearch/detectron2/blob/master/detectron2/data/detection_utils.py
 import numpy as np
 import torch
-
 from detectron2.data import transforms as T
 from detectron2.structures import Boxes, BoxMode, Instances
 
@@ -14,9 +13,9 @@ __all__ = ["transform_instance_annotations", "annotations_to_instances"]
 
 
 def transform_instance_annotations(
-    annotation,
-    transforms,
-    image_size,
+        annotation,
+        transforms,
+        image_size,
 ):
     """Adapted from:
         https://github.com/facebookresearch/detectron2/blob/master/detectron2/data/detection_utils.py#L254
@@ -81,9 +80,9 @@ def _create_empty_instances(image_size):
 
 
 def annotations_to_instances(
-    annos,
-    image_size,
-    intrinsics=None,
+        annos,
+        image_size,
+        intrinsics=None,
 ):
     """
     Create an :class:`Instances` object used by the models,
@@ -122,8 +121,8 @@ def annotations_to_instances(
     # NOTE: add nuscenes attributes here
     # NOTE: instances will be filtered later
     # NuScenes attributes
-    if len(annos) and "attribute_id" in annos[0]:    
-        attributes = [obj["attribute_id"] for obj in annos] 
+    if len(annos) and "attribute_id" in annos[0]:
+        attributes = [obj["attribute_id"] for obj in annos]
         target.gt_attributes = torch.tensor(attributes, dtype=torch.int64)
 
     # Speed (magnitude of velocity)

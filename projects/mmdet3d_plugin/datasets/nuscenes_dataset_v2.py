@@ -1,20 +1,22 @@
 import copy
-from mmdet3d.datasets import NuScenesDataset
-import mmcv
-from os import path as osp
-from mmdet.datasets import DATASETS
-import torch
-import numpy as np
-from nuscenes.eval.common.utils import quaternion_yaw, Quaternion
-from .nuscnes_eval import NuScenesEval_custom
-from mmcv.parallel import DataContainer as DC
 from collections import defaultdict, OrderedDict
+from os import path as osp
+
+import mmcv
+import numpy as np
+import torch
+from mmcv.parallel import DataContainer as DC
+from mmdet.datasets import DATASETS
+from mmdet3d.datasets import NuScenesDataset
+from nuscenes.eval.common.utils import Quaternion
+
 from projects.mmdet3d_plugin.dd3d.datasets.nuscenes import NuscenesDataset as DD3DNuscenesDataset
+from .nuscnes_eval import NuScenesEval_custom
 
 
 @DATASETS.register_module()
 class CustomNuScenesDatasetV2(NuScenesDataset):
-    def __init__(self, frames=(),mono_cfg=None, overlap_test=False,*args, **kwargs):
+    def __init__(self, frames=(), mono_cfg=None, overlap_test=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.frames = frames
         self.queue_length = len(frames)
@@ -38,10 +40,10 @@ class CustomNuScenesDatasetV2(NuScenesDataset):
         self.pre_pipeline(input_dict)
         example = self.pipeline(input_dict)
         data_queue[0] = example
-        
+
         for frame_idx in self.frames:
             chosen_idx = index + frame_idx
-            if frame_idx ==0 or chosen_idx <0 or chosen_idx >= len(self.data_infos):
+            if frame_idx == 0 or chosen_idx < 0 or chosen_idx >= len(self.data_infos):
                 continue
             info = self.data_infos[chosen_idx]
             input_dict = self.prepare_input_dict(info)
@@ -56,7 +58,7 @@ class CustomNuScenesDatasetV2(NuScenesDataset):
             single_aug_data_queue = {}
             for t in data_queue.keys():
                 single_example = {}
-                for key ,value in data_queue[t].items():
+                for key, value in data_queue[t].items():
                     single_example[key] = value[i]
                 single_aug_data_queue[t] = single_example
             single_aug_data_queue = OrderedDict(sorted(single_aug_data_queue.items()))
@@ -77,7 +79,7 @@ class CustomNuScenesDatasetV2(NuScenesDataset):
         data_queue = OrderedDict()
         input_dict = self.get_data_info(index)
         if input_dict is None:
-            return None 
+            return None
         cur_scene_token = input_dict['scene_token']
         # cur_frame_idx = input_dict['frame_idx']
         ann_info = copy.deepcopy(input_dict['ann_info'])
@@ -88,16 +90,16 @@ class CustomNuScenesDatasetV2(NuScenesDataset):
             return None
         data_queue[0] = example
         aug_param = copy.deepcopy(example['aug_param']) if 'aug_param' in example else {}
-        
+
         # frame_idx_to_idx = self.scene_to_frame_idx_to_idx[cur_scene_token]
         for frame_idx in self.frames:
             chosen_idx = index + frame_idx
-            if frame_idx ==0 or chosen_idx <0 or chosen_idx >= len(self.data_infos):
+            if frame_idx == 0 or chosen_idx < 0 or chosen_idx >= len(self.data_infos):
                 continue
             info = self.data_infos[chosen_idx]
             input_dict = self.prepare_input_dict(info)
             if input_dict['scene_token'] == cur_scene_token:
-                input_dict['ann_info'] = copy.deepcopy(ann_info) # only for pipeline, should never be used 
+                input_dict['ann_info'] = copy.deepcopy(ann_info)  # only for pipeline, should never be used
                 self.pre_pipeline(input_dict)
                 input_dict['aug_param'] = copy.deepcopy(aug_param)
                 example = self.pipeline(input_dict)
@@ -116,8 +118,8 @@ class CustomNuScenesDatasetV2(NuScenesDataset):
         lidar2ego[:3, 3] = queue[0]['lidar2ego_translation']
 
         egocurr2global = np.eye(4, dtype=np.float32)
-        egocurr2global[:3,:3] = Quaternion(queue[0]['ego2global_rotation']).rotation_matrix
-        egocurr2global[:3,3] = queue[0]['ego2global_translation']
+        egocurr2global[:3, :3] = Quaternion(queue[0]['ego2global_rotation']).rotation_matrix
+        egocurr2global[:3, 3] = queue[0]['ego2global_translation']
         metas_map = {}
         for i, each in queue.items():
             metas_map[i] = each['img_metas'].data
@@ -128,15 +130,17 @@ class CustomNuScenesDatasetV2(NuScenesDataset):
                 metas_map[i]['lidaradj2lidarcurr'] = None
             else:
                 egoadj2global = np.eye(4, dtype=np.float32)
-                egoadj2global[:3,:3] = Quaternion(each['ego2global_rotation']).rotation_matrix
-                egoadj2global[:3,3] = each['ego2global_translation']
+                egoadj2global[:3, :3] = Quaternion(each['ego2global_rotation']).rotation_matrix
+                egoadj2global[:3, 3] = each['ego2global_translation']
 
-                lidaradj2lidarcurr = np.linalg.inv(lidar2ego) @ np.linalg.inv(egocurr2global) @ egoadj2global @ lidar2ego
+                lidaradj2lidarcurr = np.linalg.inv(lidar2ego) @ np.linalg.inv(
+                    egocurr2global) @ egoadj2global @ lidar2ego
                 metas_map[i]['lidaradj2lidarcurr'] = lidaradj2lidarcurr
                 for i_cam in range(len(metas_map[i]['lidar2img'])):
-                    metas_map[i]['lidar2img'][i_cam] = metas_map[i]['lidar2img'][i_cam] @ np.linalg.inv(lidaradj2lidarcurr)
+                    metas_map[i]['lidar2img'][i_cam] = metas_map[i]['lidar2img'][i_cam] @ np.linalg.inv(
+                        lidaradj2lidarcurr)
         queue[0]['img'] = DC(torch.stack(imgs_list),
-                              cpu_only=False, stack=True)
+                             cpu_only=False, stack=True)
         queue[0]['img_metas'] = DC(metas_map, cpu_only=True)
         queue = queue[0]
         return queue
@@ -168,7 +172,7 @@ class CustomNuScenesDatasetV2(NuScenesDataset):
                 # obtain lidar to image transformation matrix
                 lidar2cam_r = np.linalg.inv(cam_info['sensor2lidar_rotation'])
                 lidar2cam_t = cam_info[
-                    'sensor2lidar_translation'] @ lidar2cam_r.T
+                                  'sensor2lidar_translation'] @ lidar2cam_r.T
                 lidar2cam_rt = np.eye(4)
                 lidar2cam_rt[:3, :3] = lidar2cam_r.T
                 lidar2cam_rt[3, :3] = -lidar2cam_t
@@ -212,7 +216,8 @@ class CustomNuScenesDatasetV2(NuScenesDataset):
             for cam_type, cam_info in info['cams'].items():
                 img_ids.append(cam_info['sample_data_token'])
 
-            mono_input_dict = []; mono_ann_index = []
+            mono_input_dict = [];
+            mono_ann_index = []
             for i, img_id in enumerate(img_ids):
                 tmp_dict = self.mono_dataset.getitem_by_datumtoken(img_id)
                 if tmp_dict is not None:

@@ -74,12 +74,13 @@ def _safe_det_3x3(t: torch.Tensor):
     """
 
     det = (
-        t[..., 0, 0] * (t[..., 1, 1] * t[..., 2, 2] - t[..., 1, 2] * t[..., 2, 1])
-        - t[..., 0, 1] * (t[..., 1, 0] * t[..., 2, 2] - t[..., 2, 0] * t[..., 1, 2])
-        + t[..., 0, 2] * (t[..., 1, 0] * t[..., 2, 1] - t[..., 2, 0] * t[..., 1, 1])
+            t[..., 0, 0] * (t[..., 1, 1] * t[..., 2, 2] - t[..., 1, 2] * t[..., 2, 1])
+            - t[..., 0, 1] * (t[..., 1, 0] * t[..., 2, 2] - t[..., 2, 0] * t[..., 1, 2])
+            + t[..., 0, 2] * (t[..., 1, 0] * t[..., 2, 1] - t[..., 2, 0] * t[..., 1, 1])
     )
 
     return det
+
 
 def _axis_angle_rotation(axis: str, angle: torch.Tensor) -> torch.Tensor:
     """
@@ -109,6 +110,7 @@ def _axis_angle_rotation(axis: str, angle: torch.Tensor) -> torch.Tensor:
         raise ValueError("letter must be either X, Y or Z.")
 
     return torch.stack(R_flat, -1).reshape(angle.shape + (3, 3))
+
 
 class Transform3d:
     """
@@ -236,10 +238,10 @@ class Transform3d:
     """
 
     def __init__(
-        self,
-        dtype: torch.dtype = torch.float32,
-        device: Device = "cpu",
-        matrix: Optional[torch.Tensor] = None,
+            self,
+            dtype: torch.dtype = torch.float32,
+            device: Device = "cpu",
+            matrix: Optional[torch.Tensor] = None,
     ) -> None:
         """
         Args:
@@ -276,7 +278,7 @@ class Transform3d:
         return self.get_matrix().shape[0]
 
     def __getitem__(
-        self, index: Union[int, List[int], slice, torch.Tensor]
+            self, index: Union[int, List[int], slice, torch.Tensor]
     ) -> "Transform3d":
         """
         Args:
@@ -520,10 +522,10 @@ class Transform3d:
         return other
 
     def to(
-        self,
-        device: Device,
-        copy: bool = False,
-        dtype: Optional[torch.dtype] = None,
+            self,
+            device: Device,
+            copy: bool = False,
+            dtype: Optional[torch.dtype] = None,
     ) -> "Transform3d":
         """
         Match functionality of torch.Tensor.to()
@@ -570,12 +572,12 @@ class Transform3d:
 
 class Translate(Transform3d):
     def __init__(
-        self,
-        x,
-        y=None,
-        z=None,
-        dtype: torch.dtype = torch.float32,
-        device: Optional[Device] = None,
+            self,
+            x,
+            y=None,
+            z=None,
+            dtype: torch.dtype = torch.float32,
+            device: Optional[Device] = None,
     ) -> None:
         """
         Create a new Transform3d representing 3D translations.
@@ -611,12 +613,12 @@ class Translate(Transform3d):
 
 class Scale(Transform3d):
     def __init__(
-        self,
-        x,
-        y=None,
-        z=None,
-        dtype: torch.dtype = torch.float32,
-        device: Optional[Device] = None,
+            self,
+            x,
+            y=None,
+            z=None,
+            dtype: torch.dtype = torch.float32,
+            device: Optional[Device] = None,
     ) -> None:
         """
         A Transform3d representing a scaling operation, with different scale
@@ -658,11 +660,11 @@ class Scale(Transform3d):
 
 class Rotate(Transform3d):
     def __init__(
-        self,
-        R: torch.Tensor,
-        dtype: torch.dtype = torch.float32,
-        device: Optional[Device] = None,
-        orthogonal_tol: float = 1e-5,
+            self,
+            R: torch.Tensor,
+            dtype: torch.dtype = torch.float32,
+            device: Optional[Device] = None,
+            orthogonal_tol: float = 1e-5,
     ) -> None:
         """
         Create a new Transform3d representing 3D rotation using a rotation
@@ -697,12 +699,12 @@ class Rotate(Transform3d):
 
 class RotateAxisAngle(Rotate):
     def __init__(
-        self,
-        angle,
-        axis: str = "X",
-        degrees: bool = True,
-        dtype: torch.dtype = torch.float32,
-        device: Optional[Device] = None,
+            self,
+            angle,
+            axis: str = "X",
+            degrees: bool = True,
+            dtype: torch.dtype = torch.float32,
+            device: Optional[Device] = None,
     ) -> None:
         """
         Create a new Transform3d representing 3D rotation about an axis
@@ -755,13 +757,13 @@ def _handle_coord(c, dtype: torch.dtype, device: torch.device) -> torch.Tensor:
 
 
 def _handle_input(
-    x,
-    y,
-    z,
-    dtype: torch.dtype,
-    device: Optional[Device],
-    name: str,
-    allow_singleton: bool = False,
+        x,
+        y,
+        z,
+        dtype: torch.dtype,
+        device: Optional[Device],
+        name: str,
+        allow_singleton: bool = False,
 ) -> torch.Tensor:
     """
     Helper function to handle parsing logic for building transforms. The output
@@ -821,7 +823,7 @@ def _handle_input(
 
 
 def _handle_angle_input(
-    x, dtype: torch.dtype, device: Optional[Device], name: str
+        x, dtype: torch.dtype, device: Optional[Device], name: str
 ) -> torch.Tensor:
     """
     Helper function for building a rotation function using angles.

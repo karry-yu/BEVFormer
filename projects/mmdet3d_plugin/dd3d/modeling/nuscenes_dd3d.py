@@ -1,24 +1,22 @@
 # Copyright 2021 Toyota Research Institute.  All rights reserved.
 import torch
 import torch.nn.functional as F
-from fvcore.nn.smooth_l1_loss import smooth_l1_loss
-from torch import nn
-
 from detectron2.layers import Conv2d, cat
-#from detectron2.modeling.meta_arch.build import META_ARCH_REGISTRY
+# from detectron2.modeling.meta_arch.build import META_ARCH_REGISTRY
 from detectron2.modeling.postprocessing import detector_postprocess as resize_instances
 from detectron2.structures import Instances
 from detectron2.utils import comm as d2_comm
-from mmdet.models.builder import HEADS
+from fvcore.nn.smooth_l1_loss import smooth_l1_loss
 from mmcv.runner import force_fp32
+from mmdet.models.builder import HEADS
+from torch import nn
 
 from projects.mmdet3d_plugin.dd3d.datasets.nuscenes import MAX_NUM_ATTRIBUTES
-from .core import DD3D
-#from tridet.modeling.dd3d.postprocessing import get_group_idxs, nuscenes_sample_aggregate
-from .prepare_targets import DD3DTargetPreparer
 from projects.mmdet3d_plugin.dd3d.structures.boxes3d import Boxes3D
-from projects.mmdet3d_plugin.dd3d.structures.image_list import ImageList
 from projects.mmdet3d_plugin.dd3d.utils.comm import reduce_sum
+from .core import DD3D
+# from tridet.modeling.dd3d.postprocessing import get_group_idxs, nuscenes_sample_aggregate
+from .prepare_targets import DD3DTargetPreparer
 
 INF = 100000000.
 
@@ -138,7 +136,7 @@ class NuscenesDD3DTargetPreparer(DD3DTargetPreparer):
                     )
                 # NOTE: attributes and speeds.
                 attributes.append(labels_per_im.new_zeros(locations.size(0)))
-                speeds.append(labels_per_im.new_zeros(locations.size(0)))  
+                speeds.append(labels_per_im.new_zeros(locations.size(0)))
                 continue
 
             area = targets_per_im.gt_boxes.area()
@@ -223,7 +221,7 @@ class NuscenesLoss(nn.Module):
         valid_attr_mask = target_attr != MAX_NUM_ATTRIBUTES  # No attrs associated with class, or just attr missing.
 
         if pos_inds.numel() == 0:
-            attr_weights = attr_logits.new_tensor(0.0) #torch.tensor(0.0).cuda()
+            attr_weights = attr_logits.new_tensor(0.0)  # torch.tensor(0.0).cuda()
         else:
             attr_weights = fcos2d_info['centerness_targets'][valid_attr_mask]
         # Denominator for all foreground losses -- re-computed for features with valid attributes.
@@ -250,7 +248,7 @@ class NuscenesLoss(nn.Module):
         valid_gt_mask = torch.logical_not(torch.isnan(target_speeds))
 
         if pos_inds.numel() == 0:
-            speed_weights = speeds.new_tensor(0.0) #torch.tensor(0.0).cuda()
+            speed_weights = speeds.new_tensor(0.0)  # torch.tensor(0.0).cuda()
         else:
             speed_weights = fcos2d_info['centerness_targets'][valid_gt_mask]
         # Denominator for all foreground losses -- re-computed for features with valid speeds.
@@ -287,7 +285,7 @@ class NuscenesInference():
         """Add 'pred_attribute', 'pred_speed' to Instances in 'pred_instances'."""
         N = attr_logits[0].shape[0]
         for lvl, (attr_logits_lvl, speed_lvl, info_lvl, instances_lvl) in \
-            enumerate(zip(attr_logits, speeds, fcos2d_info, pred_instances)):
+                enumerate(zip(attr_logits, speeds, fcos2d_info, pred_instances)):
 
             attr_logits_lvl = attr_logits_lvl.permute(0, 2, 3, 1).reshape(N, -1, MAX_NUM_ATTRIBUTES)
             speed_lvl = speed_lvl.permute(0, 2, 3, 1).reshape(N, -1)
@@ -312,7 +310,7 @@ class NuscenesInference():
 
 @HEADS.register_module()
 class NuscenesDD3D(DD3D):
-    def __init__(self, 
+    def __init__(self,
                  num_classes,
                  in_channels,
                  strides,
@@ -325,15 +323,15 @@ class NuscenesDD3D(DD3D):
                  box3d_on=True,
                  feature_locations_offset="none"):
         super().__init__(num_classes,
-                        in_channels,
-                        strides,
-                        fcos2d_cfg=fcos2d_cfg,
-                        fcos2d_loss_cfg=fcos2d_loss_cfg,
-                        fcos3d_cfg=fcos3d_cfg,
-                        fcos3d_loss_cfg=fcos3d_loss_cfg,
-                        target_assign_cfg=target_assign_cfg,
-                        box3d_on=box3d_on,
-                        feature_locations_offset=feature_locations_offset)
+                         in_channels,
+                         strides,
+                         fcos2d_cfg=fcos2d_cfg,
+                         fcos2d_loss_cfg=fcos2d_loss_cfg,
+                         fcos3d_cfg=fcos3d_cfg,
+                         fcos3d_loss_cfg=fcos3d_loss_cfg,
+                         target_assign_cfg=target_assign_cfg,
+                         box3d_on=box3d_on,
+                         feature_locations_offset=feature_locations_offset)
 
         # backbone_output_shape = self.backbone_output_shape
         # in_channels = backbone_output_shape[0].channels
@@ -354,7 +352,7 @@ class NuscenesDD3D(DD3D):
 
         # Re-define target preparer
         del self.prepare_targets
-        self.prepare_targets = NuscenesDD3DTargetPreparer(num_classes=num_classes, 
+        self.prepare_targets = NuscenesDD3DTargetPreparer(num_classes=num_classes,
                                                           input_shape=self.backbone_output_shape,
                                                           box3d_on=box3d_on,
                                                           **target_assign_cfg)

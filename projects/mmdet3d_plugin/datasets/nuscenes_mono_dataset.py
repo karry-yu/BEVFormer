@@ -1,20 +1,20 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import copy
+import tempfile
+import warnings
+from os import path as osp
+
 import mmcv
 import numpy as np
 import pyquaternion
-import tempfile
 import torch
-import warnings
-from nuscenes.utils.data_classes import Box as NuScenesBox
-from os import path as osp
-
-from mmdet3d.core import bbox3d2result, box3d_multiclass_nms, xywhr2xyxyr
 from mmdet.datasets import DATASETS, CocoDataset
+from mmdet3d.core import bbox3d2result, box3d_multiclass_nms, xywhr2xyxyr
 from mmdet3d.core import show_multi_modality_result
 from mmdet3d.core.bbox import CameraInstance3DBoxes, get_box_type
 from mmdet3d.datasets.pipelines import Compose
 from mmdet3d.datasets.utils import extract_result_dict, get_loading_pipeline
+from nuscenes.utils.data_classes import Box as NuScenesBox
 
 
 @DATASETS.register_module()
@@ -247,17 +247,17 @@ class CustomNuScenesMonoDataset(CocoDataset):
             'vehicle.moving', 'vehicle.parked', 'vehicle.stopped', 'None'
         ]
         if label_name == 'car' or label_name == 'bus' \
-            or label_name == 'truck' or label_name == 'trailer' \
+                or label_name == 'truck' or label_name == 'trailer' \
                 or label_name == 'construction_vehicle':
             if AttrMapping_rev2[attr_idx] == 'vehicle.moving' or \
-                AttrMapping_rev2[attr_idx] == 'vehicle.parked' or \
+                    AttrMapping_rev2[attr_idx] == 'vehicle.parked' or \
                     AttrMapping_rev2[attr_idx] == 'vehicle.stopped':
                 return AttrMapping_rev2[attr_idx]
             else:
                 return CustomNuScenesMonoDataset.DefaultAttribute[label_name]
         elif label_name == 'pedestrian':
             if AttrMapping_rev2[attr_idx] == 'pedestrian.moving' or \
-                AttrMapping_rev2[attr_idx] == 'pedestrian.standing' or \
+                    AttrMapping_rev2[attr_idx] == 'pedestrian.standing' or \
                     AttrMapping_rev2[attr_idx] == \
                     'pedestrian.sitting_lying_down':
                 return AttrMapping_rev2[attr_idx]
@@ -394,7 +394,7 @@ class CustomNuScenesMonoDataset(CocoDataset):
             dict: Dictionary of evaluation details.
         """
         from nuscenes import NuScenes
-        #from nuscenes.eval.detection.evaluate import NuScenesEval
+        # from nuscenes.eval.detection.evaluate import NuScenesEval
         from .nuscnes_eval import NuScenesEval_custom
         output_dir = osp.join(*osp.split(result_path)[:-1])
         self.nusc = NuScenes(
@@ -419,7 +419,7 @@ class CustomNuScenesMonoDataset(CocoDataset):
             verbose=True,
             overlap_test=self.overlap_test,
             data_infos=self.data_infos
-            )
+        )
 
         self.nusc_eval.main(render_curves=True)
 
@@ -459,7 +459,7 @@ class CustomNuScenesMonoDataset(CocoDataset):
         assert isinstance(results, list), 'results must be a list'
         assert len(results) == len(self), (
             'The length of results is not equal to the dataset len: {} != {}'.
-            format(len(results), len(self)))
+                format(len(results), len(self)))
 
         if jsonfile_prefix is None:
             tmp_dir = tempfile.TemporaryDirectory()

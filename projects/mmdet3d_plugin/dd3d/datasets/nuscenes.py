@@ -1,19 +1,18 @@
 # Copyright 2021 Toyota Research Institute.  All rights reserved.
-#import functools
+# import functools
 from collections import OrderedDict
 
 import numpy as np
 import seaborn as sns
-from torch.utils.data import Dataset
-from tqdm import tqdm
-
-#from detectron2.data import MetadataCatalog
+# from detectron2.data import MetadataCatalog
 from detectron2.structures.boxes import BoxMode
 from nuscenes.eval.detection.utils import category_to_detection_name
 from nuscenes.nuscenes import NuScenes
 from nuscenes.utils.splits import create_splits_scenes
+from torch.utils.data import Dataset
+from tqdm import tqdm
 
-#from tridet.data import collect_dataset_dicts
+# from tridet.data import collect_dataset_dicts
 from projects.mmdet3d_plugin.dd3d.structures.boxes3d import GenericBoxes3D
 from projects.mmdet3d_plugin.dd3d.structures.pose import Pose
 from projects.mmdet3d_plugin.dd3d.utils.geometry import project_points3d
@@ -97,7 +96,8 @@ def _compute_iou(box1, box2):
 
 
 class NuscenesDataset(Dataset):
-    def __init__(self, name, data_root, datum_names=CAMERA_NAMES, min_num_lidar_points=3, min_box_visibility=0.2, **unused):
+    def __init__(self, name, data_root, datum_names=CAMERA_NAMES, min_num_lidar_points=3, min_box_visibility=0.2,
+                 **unused):
         self.data_root = data_root
         assert name in DATASET_NAME_TO_VERSION
         version = DATASET_NAME_TO_VERSION[name]
@@ -345,7 +345,7 @@ class NuscenesDataset(Dataset):
         d2_dict['intrinsics'] = list(K.flatten())
         # Get pose of the sensor (S) from vehicle (V) frame
         _pose_VS = self.nusc.get('calibrated_sensor', datum['calibrated_sensor_token'])
-        pose_VS = Pose(wxyz=np.float64(_pose_VS['rotation']), tvec=np.float64(_pose_VS['translation'])) 
+        pose_VS = Pose(wxyz=np.float64(_pose_VS['rotation']), tvec=np.float64(_pose_VS['translation']))
         # Get ego-pose of the vehicle (V) from global/world (W) frame
         _pose_WV = self.nusc.get('ego_pose', datum['ego_pose_token'])
         pose_WV = Pose(wxyz=np.float64(_pose_WV['rotation']), tvec=np.float64(_pose_WV['translation']))

@@ -3,7 +3,6 @@ import logging
 from functools import wraps
 
 import torch.distributed as dist
-
 from detectron2.utils import comm as d2_comm
 
 LOG = logging.getLogger(__name__)
@@ -22,6 +21,7 @@ def broadcast_from_master(fn):
     @broadcast_from_master
     def foo(a, b): ...
     """
+
     @wraps(fn)
     def wrapper(*args, **kwargs):  # pylint: disable=unused-argument
         global _NESTED_BROADCAST_FROM_MASTER
@@ -57,6 +57,7 @@ def master_only(fn):
     @master_only
     def foo(a, b): ...
     """
+
     @wraps(fn)
     def wrapped_fn(*args, **kwargs):
         if d2_comm.is_main_process():

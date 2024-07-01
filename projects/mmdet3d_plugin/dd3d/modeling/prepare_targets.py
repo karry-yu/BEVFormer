@@ -1,6 +1,5 @@
 # Copyright 2021 Toyota Research Institute.  All rights reserved.
 import torch
-
 from detectron2.layers import cat
 
 from projects.mmdet3d_plugin.dd3d.structures.boxes3d import Boxes3D
@@ -9,8 +8,8 @@ INF = 100000000.
 
 
 class DD3DTargetPreparer():
-    def __init__(self, 
-                 num_classes, 
+    def __init__(self,
+                 num_classes,
                  input_shape,
                  box3d_on=True,
                  center_sample=True,

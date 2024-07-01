@@ -1,16 +1,17 @@
 import torch
 import torch.nn as nn
+import torch.utils.checkpoint as checkpoint
+from mmcv.cnn import build_norm_layer, build_conv_layer
 from mmcv.cnn import xavier_init
 from mmcv.cnn.bricks.transformer import build_transformer_layer_sequence
+from mmcv.runner.base_module import BaseModule
+from mmdet.models.backbones.resnet import BasicBlock
 from mmdet.models.utils.builder import TRANSFORMER
 from torch.nn.init import normal_
-from mmcv.runner.base_module import BaseModule
-from .temporal_self_attention import TemporalSelfAttention
-from .spatial_cross_attention import MSDeformableAttention3D
+
 from .decoder import CustomMSDeformableAttention
-from mmcv.cnn import build_norm_layer, build_conv_layer
-import torch.utils.checkpoint as checkpoint
-from mmdet.models.backbones.resnet import Bottleneck, BasicBlock
+from .spatial_cross_attention import MSDeformableAttention3D
+from .temporal_self_attention import TemporalSelfAttention
 
 
 class ResNetFusion(BaseModule):
@@ -34,8 +35,8 @@ class ResNetFusion(BaseModule):
                 layers.append(BasicBlock(inter_channels, inter_channels, stride=1, norm_cfg=norm_cfg))
         self.layers = nn.Sequential(*layers)
         self.layer_norm = nn.Sequential(
-                nn.Linear(inter_channels, out_channels),
-                nn.LayerNorm(out_channels))
+            nn.Linear(inter_channels, out_channels),
+            nn.LayerNorm(out_channels))
         self.with_cp = with_cp
 
     def forward(self, x):

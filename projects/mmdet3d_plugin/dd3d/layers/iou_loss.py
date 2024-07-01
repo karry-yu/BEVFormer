@@ -14,6 +14,7 @@ class IOULoss(nn.Module):
     * Linear IoU
     * gIoU
     """
+
     def __init__(self, loc_loss_type='iou'):
         super(IOULoss, self).__init__()
         self.loc_loss_type = loc_loss_type

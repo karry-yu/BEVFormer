@@ -4,17 +4,15 @@
 #  Modified by Zhiqi Li
 # ---------------------------------------------
 
+import copy
+
 import torch
-from mmcv.runner import force_fp32, auto_fp16
+from mmcv.runner import auto_fp16
 from mmdet.models import DETECTORS
 from mmdet3d.core import bbox3d2result
 from mmdet3d.models.detectors.mvx_two_stage import MVXTwoStageDetector
+
 from projects.mmdet3d_plugin.models.utils.grid_mask import GridMask
-import time
-import copy
-import numpy as np
-import mmdet3d
-from projects.mmdet3d_plugin.models.utils.bricks import run_time
 
 
 @DETECTORS.register_module()
@@ -63,12 +61,11 @@ class BEVFormer(MVXTwoStageDetector):
             'prev_angle': 0,
         }
 
-
     def extract_img_feat(self, img, img_metas, len_queue=None):
         """Extract features of images."""
         B = img.size(0)
         if img is not None:
-            
+
             # input_shape = img.shape[-2:]
             # # update real input shape of each single img
             # for img_meta in img_metas:
@@ -94,7 +91,7 @@ class BEVFormer(MVXTwoStageDetector):
         for img_feat in img_feats:
             BN, C, H, W = img_feat.size()
             if len_queue is not None:
-                img_feats_reshaped.append(img_feat.view(int(B/len_queue), len_queue, int(BN / B), C, H, W))
+                img_feats_reshaped.append(img_feat.view(int(B / len_queue), len_queue, int(BN / B), C, H, W))
             else:
                 img_feats_reshaped.append(img_feat.view(B, int(BN / B), C, H, W))
         return img_feats_reshaped
@@ -104,9 +101,8 @@ class BEVFormer(MVXTwoStageDetector):
         """Extract features from images and points."""
 
         img_feats = self.extract_img_feat(img, img_metas, len_queue=len_queue)
-        
-        return img_feats
 
+        return img_feats
 
     def forward_pts_train(self,
                           pts_feats,
@@ -154,7 +150,7 @@ class BEVFormer(MVXTwoStageDetector):
             return self.forward_train(**kwargs)
         else:
             return self.forward_test(**kwargs)
-    
+
     def obtain_history_bev(self, imgs_queue, img_metas_list):
         """Obtain history BEV features iteratively. To save GPU memory, gradients are not calculated.
         """
@@ -163,7 +159,7 @@ class BEVFormer(MVXTwoStageDetector):
         with torch.no_grad():
             prev_bev = None
             bs, len_queue, num_cams, C, H, W = imgs_queue.shape
-            imgs_queue = imgs_queue.reshape(bs*len_queue, num_cams, C, H, W)
+            imgs_queue = imgs_queue.reshape(bs * len_queue, num_cams, C, H, W)
             img_feats_list = self.extract_feat(img=imgs_queue, len_queue=len_queue)
             for i in range(len_queue):
                 img_metas = [each[i] for each in img_metas_list]
@@ -213,7 +209,7 @@ class BEVFormer(MVXTwoStageDetector):
         Returns:
             dict: Losses of different branches.
         """
-        
+
         len_queue = img.size(1)
         prev_img = img[:, :-1, ...]
         img = img[:, -1, ...]
@@ -221,7 +217,7 @@ class BEVFormer(MVXTwoStageDetector):
         prev_img_metas = copy.deepcopy(img_metas)
         prev_bev = self.obtain_history_bev(prev_img, prev_img_metas)
 
-        img_metas = [each[len_queue-1] for each in img_metas]
+        img_metas = [each[len_queue - 1] for each in img_metas]
         if not img_metas[0]['prev_bev_exists']:
             prev_bev = None
         img_feats = self.extract_feat(img=img, img_metas=img_metas)

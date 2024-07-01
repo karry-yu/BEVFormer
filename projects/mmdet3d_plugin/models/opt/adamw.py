@@ -4,8 +4,9 @@ except:
     print('WARNING!!!, I recommend using torch>=1.8')
 
 import torch
-from torch.optim.optimizer import Optimizer
 from mmcv.runner.optimizer.builder import OPTIMIZERS
+from torch.optim.optimizer import Optimizer
+
 
 @OPTIMIZERS.register_module()
 class AdamW2(Optimizer):
@@ -108,7 +109,6 @@ class AdamW2(Optimizer):
 
                 if amsgrad:
                     max_exp_avg_sqs.append(state['max_exp_avg_sq'])
-
 
                 # update the steps for each param group update
                 state['step'] += 1

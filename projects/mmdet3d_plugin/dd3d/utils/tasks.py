@@ -1,6 +1,7 @@
 # Copyright 2021 Toyota Research Institute.  All rights reserved.
 from collections import OrderedDict
 
+
 # from detectron2.config import configurable
 
 
@@ -35,7 +36,7 @@ NAME_TO_TASK = OrderedDict([(task.name, task) for task in TASKS])
 
 
 class TaskManager():
-    #@configurable
+    # @configurable
     def __init__(self, box2d_on=False, box3d_on=False, depth_on=False):
         """
         configurable is experimental.

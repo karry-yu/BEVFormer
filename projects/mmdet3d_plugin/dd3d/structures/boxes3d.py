@@ -4,14 +4,17 @@ import torch
 from pyquaternion import Quaternion
 from torch.cuda import amp
 
-from projects.mmdet3d_plugin.dd3d.utils.geometry import unproject_points2d
 import projects.mmdet3d_plugin.dd3d.structures.transform3d as t3d
+from projects.mmdet3d_plugin.dd3d.utils.geometry import unproject_points2d
+
 # yapf: disable
 BOX3D_CORNER_MAPPING = [
     [1, 1, 1, 1, -1, -1, -1, -1],
     [1, -1, -1, 1, 1, -1, -1, 1],
     [1, 1, -1, -1, 1, 1, -1, -1]
 ]
+
+
 # yapf: enable
 
 def quaternion_to_matrix(quaternions: torch.Tensor) -> torch.Tensor:
@@ -43,6 +46,7 @@ def quaternion_to_matrix(quaternions: torch.Tensor) -> torch.Tensor:
         -1,
     )
     return o.reshape(quaternions.shape[:-1] + (3, 3))
+
 
 def _to_tensor(x, dim):
     if isinstance(x, torch.Tensor):
@@ -191,6 +195,7 @@ class Boxes3D(GenericBoxes3D):
 
     The tvec is computed from projected center, depth, and intrinsics.
     """
+
     def __init__(self, quat, proj_ctr, depth, size, inv_intrinsics):
         self.quat = quat
         self.proj_ctr = proj_ctr

@@ -1,33 +1,32 @@
 # Copyright 2021 Toyota Research Institute.  All rights reserved.
 import torch
 import torch.nn.functional as F
-from torch import nn
-
 from detectron2.layers import Conv2d, cat, get_norm
 from mmcv.runner import force_fp32
+from torch import nn
 
 from projects.mmdet3d_plugin.dd3d.layers.normalization import ModuleListDial, Offset, Scale
-from .disentangled_box3d_loss import DisentangledBox3DLoss
 from projects.mmdet3d_plugin.dd3d.structures.boxes3d import Boxes3D
 from projects.mmdet3d_plugin.dd3d.utils.geometry import allocentric_to_egocentric, unproject_points2d
+from .disentangled_box3d_loss import DisentangledBox3DLoss
 
 EPS = 1e-7
 
 
 def predictions_to_boxes3d(
-    quat,
-    proj_ctr,
-    depth,
-    size,
-    locations,
-    inv_intrinsics,
-    canon_box_sizes,
-    min_depth,
-    max_depth,
-    scale_depth_by_focal_lengths_factor,
-    scale_depth_by_focal_lengths=True,
-    quat_is_allocentric=True,
-    depth_is_distance=False
+        quat,
+        proj_ctr,
+        depth,
+        size,
+        locations,
+        inv_intrinsics,
+        canon_box_sizes,
+        min_depth,
+        max_depth,
+        scale_depth_by_focal_lengths_factor,
+        scale_depth_by_focal_lengths=True,
+        quat_is_allocentric=True,
+        depth_is_distance=False
 ):
     # Normalize to make quat unit norm.
     quat = quat / quat.norm(dim=1, keepdim=True).clamp(min=EPS)
@@ -54,7 +53,7 @@ def predictions_to_boxes3d(
 
 
 class FCOS3DHead(nn.Module):
-    def __init__(self, 
+    def __init__(self,
                  num_classes,
                  input_shape,
                  num_convs=4,
@@ -201,14 +200,14 @@ class FCOS3DHead(nn.Module):
 
 
 class FCOS3DLoss(nn.Module):
-    def __init__(self, 
+    def __init__(self,
                  num_classes,
                  min_depth=0.1,
                  max_depth=80.0,
                  box3d_loss_weight=2.0,
                  conf3d_loss_weight=1.0,
                  conf_3d_temperature=1.0,
-                 smooth_l1_loss_beta=0.05, 
+                 smooth_l1_loss_beta=0.05,
                  max_loss_per_group=20,
                  predict_allocentric_rot=True,
                  scale_depth_by_focal_lengths=True,
@@ -233,10 +232,10 @@ class FCOS3DLoss(nn.Module):
         self.num_classes = num_classes
         self.class_agnostic = class_agnostic
 
-    @force_fp32(apply_to=('box3d_quat', 'box3d_ctr', 'box3d_depth', 'box3d_size','box3d_conf', 'inv_intrinsics'))
+    @force_fp32(apply_to=('box3d_quat', 'box3d_ctr', 'box3d_depth', 'box3d_size', 'box3d_conf', 'inv_intrinsics'))
     def forward(
-        self, box3d_quat, box3d_ctr, box3d_depth, box3d_size, box3d_conf, dense_depth, inv_intrinsics, fcos2d_info,
-        targets
+            self, box3d_quat, box3d_ctr, box3d_depth, box3d_size, box3d_conf, dense_depth, inv_intrinsics, fcos2d_info,
+            targets
     ):
         labels = targets['labels']
         box3d_targets = targets['box3d_targets']
@@ -244,7 +243,7 @@ class FCOS3DLoss(nn.Module):
 
         if pos_inds.numel() == 0:
             losses = {
-                "loss_box3d_quat": torch.stack([x.sum() * 0. for x in box3d_quat]).sum(), 
+                "loss_box3d_quat": torch.stack([x.sum() * 0. for x in box3d_quat]).sum(),
                 "loss_box3d_proj_ctr": torch.stack([x.sum() * 0. for x in box3d_ctr]).sum(),
                 "loss_box3d_depth": torch.stack([x.sum() * 0. for x in box3d_depth]).sum(),
                 "loss_box3d_size": torch.stack([x.sum() * 0. for x in box3d_size]).sum(),
@@ -341,12 +340,12 @@ class FCOS3DInference():
         self.class_agnostic = cfg.DD3D.FCOS3D.CLASS_AGNOSTIC_BOX3D
 
     def __call__(
-        self, box3d_quat, box3d_ctr, box3d_depth, box3d_size, box3d_conf, inv_intrinsics, pred_instances, fcos2d_info
+            self, box3d_quat, box3d_ctr, box3d_depth, box3d_size, box3d_conf, inv_intrinsics, pred_instances,
+            fcos2d_info
     ):
         # pred_instances: # List[List[Instances]], shape = (L, B)
         for lvl, (box3d_quat_lvl, box3d_ctr_lvl, box3d_depth_lvl, box3d_size_lvl, box3d_conf_lvl) in \
-            enumerate(zip(box3d_quat, box3d_ctr, box3d_depth, box3d_size, box3d_conf)):
-
+                enumerate(zip(box3d_quat, box3d_ctr, box3d_depth, box3d_size, box3d_conf)):
             # In-place modification: update per-level pred_instances.
             self.forward_for_single_feature_map(
                 box3d_quat_lvl, box3d_ctr_lvl, box3d_depth_lvl, box3d_size_lvl, box3d_conf_lvl, inv_intrinsics,
@@ -354,7 +353,8 @@ class FCOS3DInference():
             )  # List of Instances; one for each image.
 
     def forward_for_single_feature_map(
-        self, box3d_quat, box3d_ctr, box3d_depth, box3d_size, box3d_conf, inv_intrinsics, pred_instances, fcos2d_info
+            self, box3d_quat, box3d_ctr, box3d_depth, box3d_size, box3d_conf, inv_intrinsics, pred_instances,
+            fcos2d_info
     ):
         N = box3d_quat.shape[0]
 
