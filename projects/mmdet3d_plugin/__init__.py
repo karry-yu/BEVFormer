@@ -6,6 +6,6 @@ from .core.evaluation.eval_hooks import CustomDistEvalHook
 from .datasets.pipelines import (
     PhotoMetricDistortionMultiViewImage, PadMultiViewImage,
     NormalizeMultiviewImage, CustomCollect3D)
-from .dd3d import *
+# from .dd3d import *
 from .models.opt.adamw import AdamW2
 from .models.utils import *
