@@ -54,7 +54,7 @@ model = dict(
         num_stages=4,
         out_indices=(3,),
         frozen_stages=1,
-        norm_cfg=dict(type='BN', requires_grad=False),
+        norm_cfg=dict(type='BN', requires_grad=False),  # fixed backbone
         norm_eval=True,
         style='pytorch'),
     img_neck=dict(

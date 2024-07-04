@@ -10,7 +10,7 @@ from mmdet.datasets import DATASETS
 from mmdet3d.datasets import NuScenesDataset
 from nuscenes.eval.common.utils import Quaternion
 
-from projects.mmdet3d_plugin.dd3d.datasets.nuscenes import NuscenesDataset as DD3DNuscenesDataset
+# from projects.mmdet3d_plugin.dd3d.datasets.nuscenes import NuscenesDataset as DD3DNuscenesDataset
 from .nuscnes_eval import NuScenesEval_custom
 
 
@@ -22,8 +22,9 @@ class CustomNuScenesDatasetV2(NuScenesDataset):
         self.queue_length = len(frames)
         self.overlap_test = overlap_test
         self.mono_cfg = mono_cfg
-        if not self.test_mode and mono_cfg is not None:
-            self.mono_dataset = DD3DNuscenesDataset(**mono_cfg)
+        assert self.mono_cfg is None
+        # if not self.test_mode and mono_cfg is not None:
+        #     self.mono_dataset = DD3DNuscenesDataset(**mono_cfg)
 
     def prepare_test_data(self, index):
         """Prepare data for testing.
